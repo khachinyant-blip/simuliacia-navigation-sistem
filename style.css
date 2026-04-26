@@ -1,0 +1,44 @@
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f0f2f5; margin: 0; padding: 20px; }
+.header { text-align: center; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin-bottom: 20px; width: 100%; max-width: 750px; }
+h1 { color: #1a2a6c; margin-bottom: 20px; font-size: 22px; }
+.menu { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+.stats-board { display: flex; justify-content: space-around; background: #34495e; color: white; padding: 12px; border-radius: 8px; margin-top: 10px; }
+
+#grid-container { 
+    display: grid; 
+    grid-template-columns: repeat(20, 28px); 
+    grid-template-rows: repeat(20, 28px); 
+    gap: 1px; 
+    background-color: #bdc3c7; 
+    border: 3px solid #34495e; 
+    border-radius: 4px; 
+}
+
+.node { width: 28px; height: 28px; background-color: white; background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; }
+
+/* Պատկերների դասեր */
+.node-start { background-image: url('robot.png') !important; background-color: #2ecc71 !important; }
+.node-end { background-image: url('school.png') !important; background-color: #e74c3c !important; }
+.node-wall { background-color: #2c3e50 !important; }
+.node-weight { background-image: url('sand.jpg') !important; background-size: cover; }
+
+.node-visited { background-color: #a29bfe; animation: visitAnim 0.3s forwards; }
+.node-path { background-color: #fdcb6e !important; border: 1px solid #e17055; animation: pathAnim 0.4s forwards; z-index: 5; }
+
+.legend { display: flex; justify-content: center; gap: 15px; margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+.legend-box { width: 18px; height: 18px; border-radius: 2px; border: 1px solid #ddd; background-size: contain; background-repeat: no-repeat; background-position: center; }
+
+/* Լեգենդի գույները */
+.legend-box.node-start { background-image: url('robot.png'); background-color: #2ecc71; }
+.legend-box.node-end { background-image: url('school.png'); background-color: #e74c3c; }
+.legend-box.node-wall { background-color: #2c3e50; }
+.legend-box.node-weight { background-image: url('sand.jpg'); background-size: cover; }
+.legend-box.node-path { background-color: #fdcb6e; }
+
+.btn-primary { background: #0984e3; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-info { background: #6c5ce7; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; }
+.btn-secondary { background: #636e72; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; }
+
+@keyframes visitAnim { from { transform: scale(0.3); border-radius: 50%; } to { transform: scale(1); border-radius: 0; } }
+@keyframes pathAnim { from { transform: scale(1.2); } to { transform: scale(1); } }
