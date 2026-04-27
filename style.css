@@ -14,22 +14,30 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; flex-directio
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-.node { width: 28px; height: 28px; background-color: white; background-size: contain; background-repeat: no-repeat; background-position: center; transition: background 0.2s; }
+.node { width: 28px; height: 28px; background-color: white; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .node-start { background-image: url('robot.png') !important; background-color: #2ecc71 !important; transform: scale(1.05); z-index: 5; }
 .node-end { background-image: url('school.png') !important; background-color: #e74c3c !important; }
-.node-wall { background-color: #2c3e50 !important; border-radius: 2px; }
-.node-weight { background-image: url('sand.jpg') !important; background-size: cover; }
-.node-visited { background-color: #a29bfe; animation: visitAnim 0.3s forwards; }
-.node-path { background-color: #fdcb6e !important; border: 1px solid #e17055; }
+.node-wall { background-color: #2c3e50 !important; border-radius: 2px; transition: transform 0.2s; }
+.node-weight { background-image: url('sand.jpg') !important; background-size: cover; border: 0.1px solid #d3540033; }
+.node-visited { background-color: #a29bfe; animation: visitAnim 0.2s forwards; }
+.node-path { background-color: #fdcb6e !important; border: 1px solid #e17055; transition: 0.2s; }
 
 .legend { display: flex; gap: 15px; margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
-.legend-box { width: 18px; height: 18px; border: 1px solid #ddd; background-size: contain; }
+.tech-docs { 
+    max-width: 750px; 
+    margin-top: 30px; 
+    background: white; 
+    padding: 20px; 
+    border-left: 5px solid #0984e3; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    line-height: 1.6;
+}
+.tech-docs h3 { color: #0984e3; margin-top: 0; }
+.tech-docs ul { padding-left: 20px; color: #444; }
 
-.btn-primary { background: #0984e3; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-.btn-info { background: #6c5ce7; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
-.btn-secondary { background: #636e72; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+.btn-primary { background: #0984e3; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+.btn-primary:hover { background: #0773c5; }
+.switch-label { color: #e67e22; font-weight: bold; cursor: pointer; }
 
-.switch-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e67e22; }
-
-@keyframes visitAnim { from { transform: scale(0.3); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
+@keyframes visitAnim { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
