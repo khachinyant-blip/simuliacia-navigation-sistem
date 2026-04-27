@@ -10,9 +10,8 @@ let startNode = null; let endNode = null;
 let isMoving = false;
 let obstacleTimer = null;
 
-// Վիճակագրության գլոբալ փոփոխականներ
-let totalPathCost = 0;
 let totalVisitedNodes = new Set();
+let totalPathCost = 0;
 
 function createGrid() {
     gridContainer.innerHTML = '';
@@ -44,6 +43,8 @@ async function startSim() {
     totalVisitedNodes.clear();
     pathLengthElement.innerText = "0";
     visitedCountElement.innerText = "0";
+    
+    document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
 
     if (dynamicCheck.checked) {
         if (obstacleTimer) clearInterval(obstacleTimer);
@@ -51,7 +52,7 @@ async function startSim() {
     }
 
     while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
-        // Մաքրել միայն նախորդ քայլի "մանուշակագույն" վանդակները
+        // Մաքրել միայն վիզուալ մանուշակագույնը նոր որոնումից առաջ
         document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
 
         const path = findPathStep();
@@ -70,7 +71,7 @@ async function startSim() {
             continue; 
         }
 
-        // Ծախսի հաշվարկ
+        // Վիճակագրության թարմացում
         totalPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
         pathLengthElement.innerText = totalPathCost;
         visitedCountElement.innerText = totalVisitedNodes.size;
@@ -112,3 +113,16 @@ function findPathStep() {
         totalVisitedNodes.add(currId);
 
         if (currId !== `node-${startNode.r}-${startNode.c}` && currId !== `node-${endNode.r}-${endNode.c}`) {
+            document.getElementById(currId).classList.add('node-visited');
+        }
+
+        let neighbors = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
+        for (let n of neighbors) {
+            let nId = `node-${n.r}-${n.c}`;
+            if (n.r < 0 || n.r >= ROWS || n.c < 0 || n.c >= COLS) continue;
+            
+            const nEl = document.getElementById(nId);
+            if (nEl.classList.contains('node-wall') || closedSet.has(nId)) continue;
+
+            let weight = nEl.classList.contains('node-weight') ? 3 : 1;
+            let tentative
