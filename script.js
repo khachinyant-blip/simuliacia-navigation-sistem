@@ -8,8 +8,7 @@ const dynamicCheck = document.getElementById('dynamicCheck');
 const ROWS = 20; const COLS = 20;
 let startNode = null; let endNode = null; 
 let isMoving = false;
-let totalVisitedSet = new Set();
-let totalPathCost = 0;
+let obstacleTimer = null;
 
 function createGrid() {
     gridContainer.innerHTML = '';
@@ -37,57 +36,57 @@ async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
     
-    totalPathCost = 0;
-    totalVisitedSet.clear();
-    pathLengthElement.innerText = "0";
-    visitedCountElement.innerText = "0";
+    let totalPathCost = 0;
+    let totalVisited = new Set();
 
-    // Մաքրել հին հետքերը
-    document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
+    if (dynamicCheck.checked) obstacleTimer = setInterval(moveObstacles, 600);
 
-    let currentPos = { ...startNode };
-
-    while (currentPos.r !== endNode.r || currentPos.c !== endNode.c) {
-        // Մաքրել միայն վիզուալ ստուգվածները նոր որոնումից առաջ
+    while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
+        // Մաքրել հին վիզուալ հետքերը նոր որոնումից առաջ
         document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
-
-        const path = await findPath(currentPos);
         
-        if (!path || path.length === 0) {
-            alert("Ճանապարհ չգտնվեց:");
-            break;
+        const result = findPathSync(startNode);
+        const path = result.path;
+        
+        // Գրանցել ստուգված վանդակները վիճակագրության մեջ
+        result.visited.forEach(id => totalVisited.add(id));
+        visitedCountElement.innerText = totalVisited.size;
+
+        if (!path || path.length === 0) break;
+
+        const nextId = path[0];
+        const nextNode = document.getElementById(nextId);
+
+        if (nextNode.classList.contains('node-wall')) {
+            await new Promise(r => setTimeout(r, 100));
+            continue; 
         }
 
-        const nextStepId = path[0];
-        const nextNode = document.getElementById(nextStepId);
-
-        // Ծախսի թարմացում
+        // Հաշվարկել ծախսը
         totalPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
         pathLengthElement.innerText = totalPathCost;
-        visitedCountElement.innerText = totalVisitedSet.size;
 
-        // Ռոբոտի վիզուալ տեղաշարժ
-        const oldNode = document.getElementById(`node-${currentPos.r}-${currentPos.c}`);
-        oldNode.classList.remove('node-start');
-        oldNode.classList.add('node-path');
-
-        let [_, nr, nc] = nextStepId.split('-').map(Number);
-        currentPos = { r: nr, c: nc };
+        // Շարժվել
+        document.querySelector('.node-start').classList.remove('node-start');
+        document.getElementById(`node-${startNode.r}-${startNode.c}`).classList.add('node-path');
+        
+        let [_, nr, nc] = nextId.split('-').map(Number);
+        startNode = {r: nr, c: nc};
         nextNode.classList.add('node-start');
 
-        if (dynamicCheck.checked) moveObstacles();
-        
-        await new Promise(r => setTimeout(r, 101 - speedRange.value));
+        await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
     }
+
+    if (obstacleTimer) clearInterval(obstacleTimer);
     isMoving = false;
 }
 
-async function findPath(current) {
+function findPathSync(current) {
     let openList = [current];
     let prev = {};
     let gScore = { [`node-${current.r}-${current.c}`]: 0 };
     let fScore = { [`node-${current.r}-${current.c}`]: h(current, endNode) };
-    let closedSet = new Set();
+    let visitedInStep = new Set();
 
     while (openList.length > 0) {
         openList.sort((a, b) => fScore[`node-${a.r}-${a.c}`] - fScore[`node-${b.r}-${b.c}`]);
@@ -97,28 +96,20 @@ async function findPath(current) {
         if (curr.r === endNode.r && curr.c === endNode.c) {
             let p = []; let t = currId;
             while (prev[t]) { p.push(t); t = prev[t]; }
-            return p.reverse();
+            return { path: p.reverse(), visited: visitedInStep };
         }
 
-        closedSet.add(currId);
-        totalVisitedSet.add(currId);
-
-        if (currId !== `node-${current.r}-${current.c}` && currId !== `node-${endNode.r}-${endNode.c}`) {
-            const el = document.getElementById(currId);
-            if (el) {
-                el.classList.add('node-visited');
-                // Սա տալիս է սահուն սկանավորման էֆեկտը
-                if (closedSet.size % 10 === 0) await new Promise(r => setTimeout(r, 1));
-            }
+        visitedInStep.add(currId);
+        if (currId !== `node-${current.r}-${current.c}`) {
+            document.getElementById(currId).classList.add('node-visited');
         }
 
         let neighbors = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
         for (let n of neighbors) {
             let nId = `node-${n.r}-${n.c}`;
-            const nEl = document.getElementById(nId);
-            if (!nEl || n.r < 0 || n.r >= ROWS || n.c < 0 || n.c >= COLS || nEl.classList.contains('node-wall') || closedSet.has(nId)) continue;
+            if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList.contains('node-wall') || visitedInStep.has(nId)) continue;
 
-            let weight = nEl.classList.contains('node-weight') ? 3 : 1;
+            let weight = document.getElementById(nId).classList.contains('node-weight') ? 3 : 1;
             let tentativeG = gScore[currId] + weight;
 
             if (tentativeG < (gScore[nId] ?? Infinity)) {
@@ -129,38 +120,8 @@ async function findPath(current) {
             }
         }
     }
-    return null;
+    return { path: null, visited: visitedInStep };
 }
 
 function moveObstacles() {
-    const walls = Array.from(document.querySelectorAll('.node-wall'));
-    walls.forEach(wall => {
-        if (Math.random() > 0.05) return;
-        const [_, r, c] = wall.id.split('-').map(Number);
-        const dirs = [{r:1,c:0}, {r:-1,c:0}, {r:0,c:1}, {r:0,c:-1}];
-        const d = dirs[Math.floor(Math.random() * dirs.length)];
-        const nr = r + d.r, nc = c + d.c;
-        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-            const target = document.getElementById(`node-${nr}-${nc}`);
-            if (target && !target.classList.contains('node-wall') && !target.classList.contains('node-start') && !target.classList.contains('node-end')) {
-                wall.classList.remove('node-wall');
-                target.classList.add('node-wall');
-            }
-        }
-    });
-}
-
-document.getElementById('startBtn').addEventListener('click', startSim);
-document.getElementById('mazeBtn').addEventListener('click', () => {
-    if (isMoving) return;
-    document.querySelectorAll('.node').forEach(n => {
-        n.className = 'node';
-        let r = Math.random();
-        if (r < 0.2) n.classList.add('node-wall');
-        else if (r < 0.1) n.classList.add('node-weight');
-    });
-    if(startNode) document.getElementById(`node-${startNode.r}-${startNode.c}`).classList.add('node-start');
-    if(endNode) document.getElementById(`node-${endNode.r}-${endNode.c}`).classList.add('node-end');
-});
-document.getElementById('clearBtn').addEventListener('click', () => location.reload());
-createGrid();
+    const walls = Array.from(document.querySelectorAll('.node
