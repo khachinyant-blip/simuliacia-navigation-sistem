@@ -9,17 +9,10 @@ const ROWS = 20; const COLS = 20;
 let startNode = null; let endNode = null; 
 let isMoving = false;
 let obstacleTimer = null;
-let totalVisited = new Set();
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(freq, duration) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.value = freq;
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + duration);
-}
+// Վիճակագրության գլոբալ բազա
+let globalVisitedSet = new Set();
+let totalPathCost = 0;
 
 function createGrid() {
     gridContainer.innerHTML = '';
@@ -46,45 +39,61 @@ const h = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
 async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
-    let totalCost = 0;
-    totalVisited.clear();
     
+    totalPathCost = 0;
+    globalVisitedSet.clear();
+    pathLengthElement.innerText = "0";
+    visitedCountElement.innerText = "0";
     document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
 
-    if (dynamicCheck.checked) obstacleTimer = setInterval(moveObstacles, 800);
+    if (dynamicCheck.checked) {
+        if (obstacleTimer) clearInterval(obstacleTimer);
+        obstacleTimer = setInterval(moveObstacles, 600);
+    }
 
-    while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
+    let currentPos = { ...startNode };
+
+    while (currentPos.r !== endNode.r || currentPos.c !== endNode.c) {
+        // Վիզուալ մաքրում նոր քայլից առաջ
         document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
+
+        const path = findPath(currentPos);
         
-        const path = findPath();
-        if (!path || path.length === 0) break;
+        if (!path || path.length === 0) {
+            isMoving = false;
+            clearInterval(obstacleTimer);
+            return;
+        }
 
         const nextId = path[0];
         const nextNode = document.getElementById(nextId);
-        
-        totalCost += nextNode.classList.contains('node-weight') ? 3 : 1;
-        pathLengthElement.innerText = totalCost;
-        visitedCountElement.innerText = totalVisited.size;
 
-        document.querySelector('.node-start').classList.remove('node-start');
-        document.getElementById(`node-${startNode.r}-${startNode.c}`).classList.add('node-path');
-        
+        // Ճշգրիտ հաշվարկների թարմացում
+        totalPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
+        pathLengthElement.innerText = totalPathCost;
+        visitedCountElement.innerText = globalVisitedSet.size;
+
+        // Ռոբոտի վիզուալ շարժ
+        const prevNode = document.getElementById(`node-${currentPos.r}-${currentPos.c}`);
+        prevNode.classList.remove('node-start');
+        prevNode.classList.add('node-path');
+
         let [_, nr, nc] = nextId.split('-').map(Number);
-        startNode = {r: nr, c: nc};
+        currentPos = { r: nr, c: nc };
         nextNode.classList.add('node-start');
 
-        playSound(400 + totalCost, 0.1);
-        await new Promise(r => setTimeout(r, 201 - speedRange.value * 2));
+        await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
     }
-    clearInterval(obstacleTimer);
+
+    if (obstacleTimer) clearInterval(obstacleTimer);
     isMoving = false;
 }
 
-function findPath() {
-    let openList = [startNode];
+function findPath(start) {
+    let openList = [start];
     let prev = {};
-    let gScore = { [`node-${startNode.r}-${startNode.c}`]: 0 };
-    let fScore = { [`node-${startNode.r}-${startNode.c}`]: h(startNode, endNode) };
+    let gScore = { [`node-${start.r}-${start.c}`]: 0 };
+    let fScore = { [`node-${start.r}-${start.c}`]: h(start, endNode) };
     let closedSet = new Set();
 
     while (openList.length > 0) {
@@ -99,8 +108,11 @@ function findPath() {
         }
 
         closedSet.add(currId);
-        totalVisited.add(currId);
-        if (currId !== `node-${startNode.r}-${startNode.c}`) document.getElementById(currId).classList.add('node-visited');
+        globalVisitedSet.add(currId); // Գրանցում ենք գլոբալ հաշվիչի մեջ
+
+        if (currId !== `node-${start.r}-${start.c}` && currId !== `node-${endNode.r}-${endNode.c}`) {
+            document.getElementById(currId).classList.add('node-visited');
+        }
 
         let neighbors = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
         for (let n of neighbors) {
@@ -132,7 +144,7 @@ function moveObstacles() {
         const nr = r + d.r, nc = c + d.c;
         if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
             const target = document.getElementById(`node-${nr}-${nc}`);
-            if (target && !target.className.includes('node-')) {
+            if (target && !target.classList.contains('node-wall') && !target.classList.contains('node-start') && !target.classList.contains('node-end')) {
                 wall.classList.remove('node-wall');
                 target.classList.add('node-wall');
             }
@@ -141,13 +153,15 @@ function moveObstacles() {
 }
 
 document.getElementById('startBtn').addEventListener('click', startSim);
-document.getElementById('clearBtn').addEventListener('click', () => location.reload());
 document.getElementById('mazeBtn').addEventListener('click', () => {
+    if (isMoving) return;
     document.querySelectorAll('.node').forEach(n => {
         n.className = 'node';
-        if (Math.random() < 0.2) n.classList.add('node-wall');
+        let r = Math.random();
+        if (r < 0.2) n.classList.add('node-wall');
+        else if (r < 0.3) n.classList.add('node-weight');
     });
     startNode = null; endNode = null;
 });
-
+document.getElementById('clearBtn').addEventListener('click', () => location.reload());
 createGrid();
