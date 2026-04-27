@@ -1,74 +1,101 @@
-// ... (նախորդ փոփոխականները և createGrid-ը նույնն են)
+const gridContainer = document.getElementById('grid-container');
+const pathLengthElement = document.getElementById('pathLength');
+const visitedCountElement = document.getElementById('visitedCount');
+const speedRange = document.getElementById('speedRange');
+const algoSelect = document.getElementById('algoSelect');
+const dynamicCheck = document.getElementById('dynamicCheck');
+
+const ROWS = 20; const COLS = 20;
+let startNode = null; let endNode = null; 
+let isMoving = false;
+let obstacleTimer = null;
+let totalVisitedSet = new Set();
+let totalPathCost = 0;
+
+function createGrid() {
+    gridContainer.innerHTML = '';
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            const node = document.createElement('div');
+            node.className = 'node'; node.id = `node-${r}-${c}`;
+            node.addEventListener('mousedown', (e) => {
+                if (isMoving) return;
+                const target = e.target;
+                if (!startNode) { startNode = {r,c}; target.classList.add('node-start'); }
+                else if (!endNode && (r!==startNode.r || c!==startNode.c)) { endNode = {r,c}; target.classList.add('node-end'); }
+                else {
+                    if (e.shiftKey) { target.classList.remove('node-wall'); target.classList.toggle('node-weight'); }
+                    else { target.classList.remove('node-weight'); target.classList.toggle('node-wall'); }
+                }
+            });
+            gridContainer.appendChild(node);
+        }
+    }
+}
+
+function h(a, b) { return Math.abs(a.r - b.r) + Math.abs(a.c - b.c); }
 
 async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
-
     totalPathCost = 0;
     totalVisitedSet.clear();
-    pathLengthElement.innerText = "0";
-    visitedCountElement.innerText = "0";
     
     document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
 
-    if (dynamicCheck.checked) obstacleTimer = setInterval(moveObstacles, 600);
-
-    let currentPos = { ...startNode };
-
-    while (currentPos.r !== endNode.r || currentPos.c !== endNode.c) {
-        // Մաքրում ենք միայն նախորդ քայլի ստուգվածները, որ տեսնենք նոր որոնումը
+    while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
+        // Հեռացնում ենք միայն վիզուալ մանուշակագույնը նոր որոնումից առաջ
         document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
         
-        // Կանչում ենք ալգորիթմը անիմացիայով
-        const path = await findPathWithAnimation(currentPos); 
+        let path = await findPathAnimated();
         
         if (!path || path.length === 0) {
-            await new Promise(r => setTimeout(r, 200));
-            continue;
+            isMoving = false;
+            alert("Ճանապարհ չգտնվեց:");
+            return;
         }
 
         const nextId = path[0];
         const nextNode = document.getElementById(nextId);
-
-        if (nextNode.classList.contains('node-wall')) {
-            playSound(100, 'sawtooth', 0.1);
-            await new Promise(r => setTimeout(r, 150));
-            continue; 
-        }
-
+        
+        // Ծախսի հաշվարկ
         totalPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
         pathLengthElement.innerText = totalPathCost;
         visitedCountElement.innerText = totalVisitedSet.size;
 
-        const prevNode = document.getElementById(`node-${currentPos.r}-${currentPos.c}`);
-        prevNode.classList.remove('node-start');
-        prevNode.classList.add('node-path');
-
+        // Վիզուալ շարժ
+        document.querySelector('.node-start').classList.remove('node-start');
+        document.getElementById(`node-${startNode.r}-${startNode.c}`).classList.add('node-path');
+        
         let [_, nr, nc] = nextId.split('-').map(Number);
-        currentPos = { r: nr, c: nc };
+        startNode = {r: nr, c: nc};
         nextNode.classList.add('node-start');
 
-        playSound(800, 'sine', 0.02, 0.02);
-        // Շարժման արագությունը
-        await new Promise(r => setTimeout(r, 100)); 
+        await new Promise(r => setTimeout(r, 50)); // Շարժման արագություն
+        
+        if (dynamicCheck.checked) moveObstacles();
     }
-
-    if (obstacleTimer) clearInterval(obstacleTimer);
     isMoving = false;
-    playSound(523, 'sine', 0.3);
 }
 
-async function findPathWithAnimation(currentPos) {
-    let openList = [currentPos];
+async function findPathAnimated() {
+    let openList = [{...startNode}];
     let prev = {};
-    let scores = new Map();
-    let startId = `node-${currentPos.r}-${currentPos.c}`;
+    let gScore = {}; 
+    let fScore = {};
+    let startId = `node-${startNode.r}-${startNode.c}`;
     
-    scores.set(startId, { g: 0, f: algoSelect.value === 'astar' ? h(currentPos, endNode) : 0 });
+    gScore[startId] = 0;
+    fScore[startId] = algoSelect.value === 'astar' ? h(startNode, endNode) : 0;
+    
     let closedSet = new Set();
 
     while (openList.length > 0) {
-        openList.sort((a, b) => scores.get(`node-${a.r}-${a.c}`).f - scores.get(`node-${b.r}-${b.c}`).f);
+        openList.sort((a, b) => {
+            let aId = `node-${a.r}-${a.c}`, bId = `node-${b.r}-${b.c}`;
+            return (fScore[aId] || 0) - (fScore[bId] || 0);
+        });
+
         let curr = openList.shift();
         let currId = `node-${curr.r}-${curr.c}`;
 
@@ -78,35 +105,16 @@ async function findPathWithAnimation(currentPos) {
             return p.reverse();
         }
 
-        if (!closedSet.has(currId)) {
-            closedSet.add(currId);
-            totalVisitedSet.add(currId);
+        closedSet.add(currId);
+        totalVisitedSet.add(currId);
 
-            if (currId !== startId) {
-                const el = document.getElementById(currId);
-                el.classList.add('node-visited');
-                
-                // Աստեղ կարող ես կարգավորել ստուգման արագությունը
-                // Որքան փոքր է թիվը, այնքան արագ կլինի "մանուշակագույնը"
-                await new Promise(r => setTimeout(r, 2)); 
-            }
+        if (currId !== startId && currId !== `node-${endNode.r}-${endNode.c}`) {
+            document.getElementById(currId).classList.add('node-visited');
+            // Սա ստեղծում է անիմացիոն էֆեկտը
+            if (totalVisitedSet.size % 5 === 0) await new Promise(r => setTimeout(r, 1)); 
         }
 
         let neighbors = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
         for (let n of neighbors) {
             let nId = `node-${n.r}-${n.c}`;
-            if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList.contains('node-wall') || closedSet.has(nId)) continue;
-
-            let weight = document.getElementById(nId).classList.contains('node-weight') ? 3 : 1;
-            let tentativeG = scores.get(currId).g + weight;
-
-            if (!scores.has(nId) || tentativeG < scores.get(nId).g) {
-                prev[nId] = currId;
-                let f = algoSelect.value === 'astar' ? tentativeG + h(n, endNode) : tentativeG;
-                scores.set(nId, {g: tentativeG, f: f});
-                if (!openList.some(o => o.r === n.r && o.c === n.c)) openList.push(n);
-            }
-        }
-    }
-    return null;
-}
+            if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList
