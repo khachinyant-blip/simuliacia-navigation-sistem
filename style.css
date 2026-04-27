@@ -7,12 +7,11 @@
     --visited: rgba(162, 155, 254, 0.6);
 }
 
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ecf0f1; display: flex; justify-content: center; padding: 20px; }
-.container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-h1 { color: var(--primary); margin-bottom: 20px; }
+body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; display: flex; justify-content: center; padding: 20px; }
+.container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
 
 .controls, .settings, .stats { margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; align-items: center; }
-.stat-box { background: var(--primary); color: white; padding: 8px 15px; border-radius: 5px; font-weight: bold; }
+.stat-box { background: var(--primary); color: white; padding: 8px 15px; border-radius: 5px; font-weight: bold; min-width: 150px; }
 
 #grid-container { 
     display: grid; 
@@ -24,20 +23,22 @@ h1 { color: var(--primary); margin-bottom: 20px; }
     margin: 0 auto;
 }
 
-.node { width: 25px; height: 25px; background: white; transition: background 0.2s; cursor: pointer; }
+.node { width: 25px; height: 25px; background: white; transition: background 0.1s; cursor: pointer; }
 .node-start { background: var(--robot) !important; border-radius: 50%; transform: scale(0.8); }
 .node-end { background: var(--goal) !important; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 .node-wall { background: var(--primary) !important; }
-.node-weight { background: #d35400 !important; border: 2px inset #a04000; }
+.node-weight { background: #d35400 !important; position: relative; }
+.node-weight::after { content: "≈"; color: white; display: flex; justify-content: center; align-items: center; height: 100%; }
+
 .node-visited { background: var(--visited); animation: pulse 0.3s ease-out; }
 .node-path { background: var(--path) !important; border: 1px solid #d4ac0d; }
 
 @keyframes pulse {
-    0% { transform: scale(0.3); background: #81ecec; }
+    0% { transform: scale(0.5); background: #81ecec; }
     100% { transform: scale(1); }
 }
 
-button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; background: var(--accent); color: white; transition: 0.3s; }
+button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; background: var(--accent); color: white; font-weight: bold; }
 button:hover { opacity: 0.8; }
 #clearBtn { background: #95a5a6; }
 
