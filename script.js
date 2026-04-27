@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMoving = false;
     let obstacleTimer = null;
 
-    // Գլոբալ հաշվիչներ
     let totalVisitedSet = new Set();
     let realPathCost = 0;
 
@@ -73,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         realPathCost = 0;
         pathLengthElement.innerText = "0";
         visitedCountElement.innerText = "0";
+        
+        // Մաքրել նախորդ հետքերը
         document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
 
         if (dynamicCheck.checked) {
@@ -82,10 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentRobotPos = { ...startNode };
 
         while (currentRobotPos.r !== endNode.r || currentRobotPos.c !== endNode.c) {
-            // Մաքրել մանուշակագույն սկանավորումը նոր քայլից առաջ
+            // Ամեն քայլի սկզբում մաքրել ՄԻԱՅՆ մանուշակագույնը՝ նոր սկանավորումը ցույց տալու համար
             document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
 
             const path = findPath(currentRobotPos);
+            
             if (!path || path.length === 0) {
                 await new Promise(r => setTimeout(r, 200));
                 if (!dynamicCheck.checked) break;
@@ -101,12 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue;
             }
 
-            // Հաշվարկներ
+            // Թարմացնել վիճակագրությունը
             realPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
             pathLengthElement.innerText = realPathCost;
             visitedCountElement.innerText = totalVisitedSet.size;
 
-            // Վիզուալ շարժ
+            // Ռոբոտի շարժը և հետագիծը
             const prevNodeEl = document.getElementById(`node-${currentRobotPos.r}-${currentRobotPos.c}`);
             prevNodeEl.classList.remove('node-start');
             prevNodeEl.classList.add('node-path');
@@ -116,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nextNode.classList.add('node-start');
 
             playSound(800, 'sine', 0.02, 0.02);
+            // Արագությունը կարգավորվում է սլայդերով
             await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
         }
 
@@ -129,11 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let prev = {};
         let startId = `node-${tempStart.r}-${tempStart.c}`;
         let scores = new Map();
+        
         scores.set(startId, { g: 0, f: algoSelect.value === 'astar' ? h(tempStart, endNode) : 0 });
         let closedSet = new Set();
 
         while (openList.length > 0) {
+            // Սորտավորում ըստ ալգորիթմի (A* օգտագործում է f, Dijkstra՝ միայն g)
             openList.sort((a, b) => scores.get(`node-${a.r}-${a.c}`).f - scores.get(`node-${b.r}-${b.c}`).f);
+            
             let curr = openList.shift();
             let currId = `node-${curr.r}-${curr.c}`;
 
@@ -144,32 +150,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             closedSet.add(currId);
-            totalVisitedSet.add(currId); // Գումարային հաշվարկ
+            totalVisitedSet.add(currId);
 
+            // Վիզուալ մանուշակագույն անիմացիան
             if (currId !== `node-${tempStart.r}-${tempStart.c}` && currId !== `node-${endNode.r}-${endNode.c}`) {
-                document.getElementById(currId).classList.add('node-visited');
+                const el = document.getElementById(currId);
+                if (el) el.classList.add('node-visited');
             }
 
-            let neighbors = [{ r: curr.r - 1, c: curr.c }, { r: curr.r + 1, c: curr.c }, { r: curr.r, c: curr.c - 1 }, { r: curr.r, c: curr.c + 1 }];
+            let neighbors = [
+                { r: curr.r - 1, c: curr.c }, { r: curr.r + 1, c: curr.c },
+                { r: curr.r, c: curr.c - 1 }, { r: curr.r, c: curr.c + 1 }
+            ];
+
             for (let n of neighbors) {
                 let nId = `node-${n.r}-${n.c}`;
                 const nEl = document.getElementById(nId);
-                if (!nEl || n.r < 0 || n.r >= ROWS || n.c < 0 || n.c >= COLS || nEl.classList.contains('node-wall') || closedSet.has(nId)) continue;
+                
+                if (!nEl || n.r < 0 || n.r >= ROWS || n.c < 0 || n.c >= COLS || 
+                    nEl.classList.contains('node-wall') || closedSet.has(nId)) continue;
 
-                let cost = nEl.classList.contains('node-weight') ? 3 : 1;
-                let tentativeG = scores.get(currId).g + cost;
+                let stepCost = nEl.classList.contains('node-weight') ? 3 : 1;
+                let tentativeG = scores.get(currId).g + stepCost;
+
                 if (!scores.has(nId) || tentativeG < scores.get(nId).g) {
                     prev[nId] = currId;
-                    let f = algoSelect.value === 'astar' ? tentativeG + h(n, endNode) : tentativeG;
-                    scores.set(nId, { g: tentativeG, f: f });
-                    if (!openList.some(o => o.r === n.r && o.c === n.c)) openList.push(n);
+                    let fValue = (algoSelect.value === 'astar') ? (tentativeG + h(n, endNode)) : tentativeG;
+                    scores.set(nId, { g: tentativeG, f: fValue });
+                    
+                    if (!openList.some(o => o.r === n.r && o.c === n.c)) {
+                        openList.push(n);
+                    }
                 }
             }
         }
         return null;
     }
 
-    function h(a, b) { return Math.abs(a.r - b.r) + Math.abs(a.c - b.c); }
+    function h(a, b) {
+        // Մանհեթենյան հեռավորություն A* ալգորիթմի համար
+        return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+    }
 
     function moveObstacles() {
         const walls = Array.from(document.querySelectorAll('.node-wall'));
@@ -181,7 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const nr = r + d.r, nc = c + d.c;
             if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
                 const target = document.getElementById(`node-${nr}-${nc}`);
-                if (target && !target.classList.contains('node-wall') && !target.classList.contains('node-start') && !target.classList.contains('node-end')) {
+                if (target && !target.classList.contains('node-wall') && 
+                    !target.classList.contains('node-start') && !target.classList.contains('node-end')) {
                     wall.classList.remove('node-wall');
                     target.classList.add('node-wall');
                 }
@@ -191,12 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('startBtn').addEventListener('click', startSim);
     document.getElementById('mazeBtn').addEventListener('click', () => {
+        if (isMoving) return;
         document.querySelectorAll('.node').forEach(n => {
             if (!n.classList.contains('node-start') && !n.classList.contains('node-end')) {
                 n.className = 'node';
                 let r = Math.random();
                 if (r < 0.2) n.classList.add('node-wall');
-                else if (r < 0.3) n.classList.add('node-weight');
+                else if (r < 0.1) n.classList.add('node-weight');
             }
         });
     });
