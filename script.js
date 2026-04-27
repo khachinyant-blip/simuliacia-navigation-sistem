@@ -10,7 +10,6 @@ let startNode = null; let endNode = null;
 let isMoving = false;
 let obstacleTimer = null;
 
-// --- Ձայնային Էֆեկտներ ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(freq, type, duration, vol = 0.05) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -44,9 +43,8 @@ function createGrid() {
     }
 }
 
-// --- Դինամիկ Պատերի Շարժում ---
 function moveObstacles() {
-    if (!dynamicCheck.checked) return; // Եթե անջատված է, ոչինչ չանել
+    if (!dynamicCheck.checked) return;
     const walls = Array.from(document.querySelectorAll('.node-wall'));
     walls.forEach(wall => {
         if (Math.random() > 0.3) return;
@@ -67,11 +65,7 @@ function moveObstacles() {
 async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
-    
-    // Միայն եթե դինամիկ է, միացնում ենք թայմերը
-    if (dynamicCheck.checked) {
-        obstacleTimer = setInterval(moveObstacles, 600);
-    }
+    if (dynamicCheck.checked) obstacleTimer = setInterval(moveObstacles, 600);
 
     while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
         const path = findPath();
@@ -89,7 +83,6 @@ async function startSim() {
             continue; 
         }
 
-        // Ռոբոտի վիզուալ շարժում
         document.querySelector('.node-start').classList.remove('node-start');
         let [_, nr, nc] = nextId.split('-').map(Number);
         startNode = {r: nr, c: nc};
@@ -98,7 +91,6 @@ async function startSim() {
 
         pathLengthElement.innerText = document.querySelectorAll('.node-path').length;
         playSound(800, 'sine', 0.02, 0.02);
-        
         await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
     }
 
@@ -112,10 +104,8 @@ function findPath() {
     let prev = {};
     let gScore = {}; let fScore = {};
     let startId = `node-${startNode.r}-${startNode.c}`;
-    
     gScore[startId] = 0;
     fScore[startId] = algoSelect.value === 'astar' ? h(startNode, endNode) : 0;
-
     let scores = new Map();
     scores.set(startId, {g: 0, f: fScore[startId]});
     let closedSet = new Set();
@@ -139,10 +129,8 @@ function findPath() {
         for (let n of neighbors) {
             let nId = `node-${n.r}-${n.c}`;
             if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList.contains('node-wall') || closedSet.has(nId)) continue;
-
             let cost = document.getElementById(nId).classList.contains('node-weight') ? 3 : 1;
             let tentativeG = scores.get(currId).g + cost;
-
             if (!scores.has(nId) || tentativeG < scores.get(nId).g) {
                 prev[nId] = currId;
                 let f = algoSelect.value === 'astar' ? tentativeG + h(n, endNode) : tentativeG;
