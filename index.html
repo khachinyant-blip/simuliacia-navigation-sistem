@@ -3,57 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Շարժական ռոբոտի նավիգացիոն համակարգի սիմուլյացիա</title>
+    <title>Ռոբոտի Դինամիկ Նավիգացիա</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
-        <h1>Շարժական ռոբոտի նավիգացիոն համակարգի սիմուլյացիա</h1>
+        <h1>Ռոբոտի Դինամիկ Նավիգացիա (D* Lite Logic)</h1>
         <div class="menu">
             <select id="algoSelect">
-                <option value="astar">A* Algorithm</option>
                 <option value="dijkstra">Dijkstra Algorithm</option>
+                <option value="astar">A* Algorithm</option>
             </select>
             <button id="startBtn" class="btn-primary">Սկսել</button>
             <button id="mazeBtn" class="btn-info">Ստեղծել Լաբիրինթոս</button>
             <button id="clearBtn" class="btn-secondary">Մաքրել</button>
         </div>
         <div class="controls">
-            Արագություն: <input type="range" id="speedRange" min="1" max="100" value="90">
+            Արագություն: <input type="range" id="speedRange" min="1" max="100" value="80">
         </div>
         <div class="stats-board">
-            <div class="stat-box">Ճանապարհի ծախս: <span id="pathLength">0</span></div>
-            <div class="stat-box">Ստուգված վանդակներ: <span id="visitedCount">0</span></div>
+            <div class="stat-box">Ծախս: <span id="pathLength">0</span></div>
         </div>
     </div>
 
     <div id="grid-container"></div>
 
     <div class="legend">
-        <div class="legend-item">
-            <div class="legend-box node-start"></div>
-            <span>Ռոբոտ (Սկզբնակետ)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box node-end"></div>
-            <span>Վերջնակետ</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box node-wall"></div>
-            <span>Արգելք (Պատ)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box node-weight"></div>
-            <span>Բարդ տեղանք (Ավազ)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-box node-path"></div>
-            <span>Օպտիմալ հետագիծ</span>
-        </div>
-    </div>
-
-    <div class="footer-info">
-        <b>Shift + Click:</b> Ավելացնել բարդ տեղանք | <b>Click:</b> Ավելացնել արգելք
+        <div class="legend-item"><div class="legend-box node-start"></div><span>Ռոբոտ</span></div>
+        <div class="legend-item"><div class="legend-box node-end"></div><span>Վերջնակետ</span></div>
+        <div class="legend-item"><div class="legend-box node-wall"></div><span>Շարժվող Պատ</span></div>
+        <div class="legend-item"><div class="legend-box node-path"></div><span>Հետագիծ</span></div>
     </div>
 
     <script src="script.js"></script>
