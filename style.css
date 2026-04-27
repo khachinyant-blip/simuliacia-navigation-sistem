@@ -3,7 +3,6 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; flex-directio
 .menu { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; }
 .controls { margin-bottom: 15px; display: flex; align-items: center; gap: 20px; justify-content: center; font-weight: bold; color: #34495e; }
 .stats-board { display: flex; justify-content: space-around; background: #34495e; color: white; padding: 12px; border-radius: 8px; margin-top: 10px; }
-.stat-box { font-size: 14px; }
 
 #grid-container { 
     display: grid; 
@@ -21,27 +20,21 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; flex-directio
 .node-wall { background-color: #2c3e50 !important; border-radius: 2px; }
 .node-weight { background-image: url('sand.jpg') !important; background-size: cover; border: 0.5px solid #d3540033; }
 .node-visited { background-color: #a29bfe; animation: visitAnim 0.3s forwards; }
-.node-path { background-color: #fdcb6e !important; border: 1px solid #e17055; transition: 0.2s; }
+.node-path { background-color: #fdcb6e !important; border: 1px solid #e17055; }
 
+/* Լեգենդայի իկոնկաների շտկում */
 .legend { display: flex; gap: 15px; margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-wrap: wrap; justify-content: center; }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
-.legend-box { width: 18px; height: 18px; border: 1px solid #ddd; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; }
+.legend-box { width: 20px; height: 20px; border: 1px solid #ddd; background-size: contain; background-repeat: no-repeat; background-position: center; }
 
-.tech-docs { 
-    max-width: 750px; 
-    margin-top: 30px; 
-    background: #fff; 
-    padding: 25px; 
-    border-radius: 10px; 
-    border-left: 6px solid #0984e3;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    line-height: 1.7;
-    color: #2c3e50;
-}
+.node-start-icon { background-image: url('robot.png'); background-color: #2ecc71; }
+.node-end-icon { background-image: url('school.png'); background-color: #e74c3c; }
+.node-wall-icon { background-color: #2c3e50; }
+.node-weight-icon { background-image: url('sand.jpg'); background-size: cover; }
+.node-path-icon { background-color: #fdcb6e; border: 1px solid #e17055; }
+
+.tech-docs { max-width: 750px; margin-top: 30px; background: #fff; padding: 25px; border-radius: 10px; border-left: 6px solid #0984e3; box-shadow: 0 4px 15px rgba(0,0,0,0.05); line-height: 1.7; color: #2c3e50; text-align: left; }
 .tech-docs h3 { color: #0984e3; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-.tech-docs h4 { color: #34495e; margin-bottom: 8px; }
-.tech-docs ul { padding-left: 20px; }
-
 .btn-primary { background: #0984e3; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
 .btn-info { background: #6c5ce7; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
 .btn-secondary { background: #636e72; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
