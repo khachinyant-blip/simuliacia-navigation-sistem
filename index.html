@@ -35,15 +35,26 @@
     <div class="legend">
         <div class="legend-item"><div class="legend-box node-start"></div><span>Ռոբոտ</span></div>
         <div class="legend-item"><div class="legend-box node-end"></div><span>Վերջնակետ</span></div>
-        <div class="legend-item"><div class="legend-box node-wall"></div><span>Արգելք</span></div>
-        <div class="legend-item"><div class="legend-box node-weight"></div><span>Ավազ (3x)</span></div>
+        <div class="legend-item"><div class="legend-box node-wall"></div><span>Պատ (Արգելք)</span></div>
+        <div class="legend-item"><div class="legend-box node-weight"></div><span>Ավազ (Ծախս x3)</span></div>
         <div class="legend-item"><div class="legend-box node-path"></div><span>Հետագիծ</span></div>
     </div>
 
     <div class="tech-docs">
-        <h3>🛠 Տեխնիկական ուղղորդում և սկզբունքներ</h3>
-        <p>Այս սիմուլյացիան ցուցադրում է ռոբոտի վարքագիծը անհայտ և փոփոխական միջավայրում:</p>
+        <h3>📘 Համակարգի Տեխնիկական Նկարագրություն</h3>
+        <p>Այս հարթակը հանդիսանում է շարժական ռոբոտի <strong>նավիգացիոն ենթահամակարգի</strong> սիմուլյացիա: Այն կենտրոնացած է բացառապես օպտիմալ ուղու որոնման և դինամիկ խոչընդոտներից խուսափելու ալգորիթմների վրա և չի ներառում ռոբոտի ամբողջական համակարգը (օրինակ՝ սենսորների ֆիզիկական մոդելավորումը կամ մեխանիկական կառավարումը):</p>
+        
+        <h4>🛠 Կառավարման հրահանգներ.</h4>
         <ul>
-            <li><strong>Dijkstra:</strong> Երաշխավորում է օպտիմալ ուղին՝ հաշվի առնելով միջավայրի դիմադրությունը (ավազ):</li>
-            <li><strong>A*:</strong> Օգտագործում է էվրիստիկա (հեռավորության գնահատում)՝ որոշումների կայացման արագությունը մեծացնելու համար:</li>
-            <li><strong>Dynamic Re-planning:</strong> Երբ միացված է դինամիկ ռեժիմը, ռոբոտը կիրառում է <em>Local Sensing</em> տեխնոլոգիան: Ամեն քայլի ժամանակ կատարվում է շրջակայքի սկանավորում, և եթե նախկին ուղին փ
+            <li><strong>Պատ դնելու համար:</strong> Սեղմեք մկնիկի ձախ կոճակով ցանկացած դատարկ վանդակի վրա:</li>
+            <li><strong>Ավազ դնելու համար:</strong> Պահեք <b>Shift</b> ստեղնը և սեղմեք վանդակի վրա:</li>
+            <li><strong>Դինամիկ ռեժիմ:</strong> Միացնելու դեպքում պատերը կսկսեն քաոսային շարժվել՝ ստիպելով ռոբոտին իրական ժամանակում վերանայել իր ուղին:</li>
+        </ul>
+
+        <h4>🔬 Ալգորիթմական հիմունքներ.</h4>
+        <p>Սիմուլյացիան ցուցադրում է <em>Static</em> և <em>Dynamic Path Planning</em> հասկացությունները: <strong>Dijkstra</strong>-ն ապահովում է ճշգրիտ հաշվարկ կշռված գրաֆում, իսկ <strong>A*</strong>-ը օպտիմալացնում է որոնումը էվրիստիկ մեթոդներով: Դինամիկ ռեժիմում կիրառվում է ինկրեմենտալ վերապլանավորման սկզբունքը:</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
