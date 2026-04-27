@@ -11,8 +11,8 @@ let isMoving = false;
 let obstacleTimer = null;
 
 // Վիճակագրության փոփոխականներ
-let totalVisitedNodes = new Set();
-let currentPathCost = 0;
+let totalVisitedSet = new Set();
+let totalPathCost = 0;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(freq, type, duration, vol = 0.05) {
@@ -70,18 +70,24 @@ async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
 
-    // Վիճակագրության սկզբնավորում
-    currentPathCost = 0;
-    totalVisitedNodes.clear();
+    // Վերակայել վիճակագրությունը
+    totalPathCost = 0;
+    totalVisitedSet.clear();
     pathLengthElement.innerText = "0";
     visitedCountElement.innerText = "0";
     
+    // Մաքրել հին հետքերը
     document.querySelectorAll('.node-path, .node-visited').forEach(n => n.classList.remove('node-path', 'node-visited'));
 
     if (dynamicCheck.checked) obstacleTimer = setInterval(moveObstacles, 600);
 
-    while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
-        const path = findPath(); 
+    let currentPos = { ...startNode };
+
+    while (currentPos.r !== endNode.r || currentPos.c !== endNode.c) {
+        // Յուրաքանչյուր քայլից առաջ մաքրում ենք "ստուգվածների" վիզուալը, որպեսզի տեսնենք թարմ հաշվարկը
+        document.querySelectorAll('.node-visited').forEach(n => n.classList.remove('node-visited'));
+        
+        const path = findPath(currentPos); 
         
         if (!path || path.length === 0) {
             await new Promise(r => setTimeout(r, 200));
@@ -97,16 +103,19 @@ async function startSim() {
             continue; 
         }
 
-        // Հեռավորության հաշվարկ (Ծախս)
-        currentPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
-        pathLengthElement.innerText = currentPathCost;
+        // Վիճակագրության թարմացում
+        totalPathCost += nextNode.classList.contains('node-weight') ? 3 : 1;
+        pathLengthElement.innerText = totalPathCost;
+        visitedCountElement.innerText = totalVisitedSet.size;
 
-        // Ռոբոտի շարժ
-        document.querySelector('.node-start').classList.remove('node-start');
+        // Ռոբոտի շարժը քարտեզի վրա
+        const prevNode = document.getElementById(`node-${currentPos.r}-${currentPos.c}`);
+        prevNode.classList.remove('node-start');
+        prevNode.classList.add('node-path'); // Թողնում է հետագիծ
+
         let [_, nr, nc] = nextId.split('-').map(Number);
-        startNode = {r: nr, c: nc};
+        currentPos = { r: nr, c: nc };
         nextNode.classList.add('node-start');
-        nextNode.classList.add('node-path');
 
         playSound(800, 'sine', 0.02, 0.02);
         await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
@@ -117,14 +126,14 @@ async function startSim() {
     playSound(523, 'sine', 0.3);
 }
 
-function findPath() {
-    let openList = [startNode];
+function findPath(currentPos) {
+    let openList = [currentPos];
     let prev = {};
     let scores = new Map();
-    let startId = `node-${startNode.r}-${startNode.c}`;
+    let startId = `node-${currentPos.r}-${currentPos.c}`;
     
-    scores.set(startId, { g: 0, f: algoSelect.value === 'astar' ? h(startNode, endNode) : 0 });
-    let closedSetInThisIteration = new Set();
+    scores.set(startId, { g: 0, f: algoSelect.value === 'astar' ? h(currentPos, endNode) : 0 });
+    let closedSet = new Set();
 
     while (openList.length > 0) {
         openList.sort((a, b) => scores.get(`node-${a.r}-${a.c}`).f - scores.get(`node-${b.r}-${b.c}`).f);
@@ -132,21 +141,23 @@ function findPath() {
         let currId = `node-${curr.r}-${curr.c}`;
 
         if (curr.r === endNode.r && curr.c === endNode.c) {
-            visitedCountElement.innerText = totalVisitedNodes.size;
             let p = []; let t = currId;
             while (prev[t]) { p.push(t); t = prev[t]; }
             return p.reverse();
         }
 
-        closedSetInThisIteration.add(currId);
-        totalVisitedNodes.add(currId); // Ավելացնում ենք գլոբալ բազային
+        closedSet.add(currId);
+        totalVisitedSet.add(currId); // Գրանցում ենք գլոբալ վիճակագրության մեջ
 
-        if (currId !== startId) document.getElementById(currId).classList.add('node-visited');
+        // Վիզուալ նշում ենք միայն ընթացիկ հաշվարկի ստուգված վանդակները
+        if (currId !== startId) {
+            document.getElementById(currId).classList.add('node-visited');
+        }
 
         let neighbors = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
         for (let n of neighbors) {
             let nId = `node-${n.r}-${n.c}`;
-            if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList.contains('node-wall') || closedSetInThisIteration.has(nId)) continue;
+            if (n.r<0 || n.r>=ROWS || n.c<0 || n.c>=COLS || document.getElementById(nId).classList.contains('node-wall') || closedSet.has(nId)) continue;
 
             let weight = document.getElementById(nId).classList.contains('node-weight') ? 3 : 1;
             let tentativeG = scores.get(currId).g + weight;
