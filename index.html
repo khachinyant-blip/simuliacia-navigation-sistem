@@ -2,36 +2,43 @@
 <html lang="hy">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ռոբոտի Նավիգացիա</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header">
+    <div class="container">
         <h1>Շարժական ռոբոտի նավիգացիա</h1>
-        <div class="menu">
+        
+        <div class="controls">
             <select id="algoSelect">
                 <option value="astar">A* ալգորիթմ</option>
                 <option value="dijkstra">Դեյքստրայի ալգորիթմ</option>
             </select>
-            <button id="startBtn">Սկսել</button>
-            <button id="mazeBtn">Լաբիրինթոս</button>
+            <button id="startBtn">Սկսել սիմուլյացիան</button>
+            <button id="mazeBtn">Ստեղծել լաբիրինթոս</button>
             <button id="clearBtn">Մաքրել</button>
         </div>
+
+        <div class="settings">
+            <label>Արագություն: <input type="range" id="speedRange" min="1" max="100" value="50"></label>
+            <label><input type="checkbox" id="dynamicCheck"> Դինամիկ արգելքներ</label>
+        </div>
+
         <div class="stats">
-            <div>Ճանապարհի ծախս: <span id="pathLength">0</span></div>
-            <div>Ստուգված վանդակներ: <span id="visitedCount">0</span></div>
+            <div class="stat-box">Ճանապարհի ծախս: <span id="pathLength">0</span></div>
+            <div class="stat-box">Ստուգված վանդակներ: <span id="visitedCount">0</span></div>
+        </div>
+
+        <div id="grid-container"></div>
+
+        <div class="legend">
+            <div class="item"><span class="box robot"></span> Ռոբոտ</div>
+            <div class="item"><span class="box goal"></span> Վերջնակետ</div>
+            <div class="item"><span class="box wall"></span> Պատ</div>
+            <div class="item"><span class="box sand"></span> Ավազ (Ծախս = 3)</div>
         </div>
     </div>
-
-    <div id="grid-container"></div>
-
-    <div class="legend">
-        <div class="legend-item"><div class="box start"></div> Ռոբոտ</div>
-        <div class="legend-item"><div class="box end"></div> Վերջնակետ</div>
-        <div class="legend-item"><div class="box wall"></div> Պատ</div>
-        <div class="legend-item"><div class="box sand"></div> Ավազ (x3)</div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
