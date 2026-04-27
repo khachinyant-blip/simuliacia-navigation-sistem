@@ -3,42 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ռոբոտի Նավիգացիա</title>
+    <title>Ռոբոտի Նավիգացիոն Սիմուլյացիա</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Շարժական ռոբոտի նավիգացիա</h1>
-        
-        <div class="controls">
+    <div class="header">
+        <h1>Շարժական ռոբոտի նավիգացիոն համակարգի սիմուլյացիա</h1>
+        <div class="menu">
             <select id="algoSelect">
-                <option value="astar">A* ալգորիթմ</option>
                 <option value="dijkstra">Դեյքստրայի ալգորիթմ</option>
+                <option value="astar">A* ալգորիթմ</option>
             </select>
-            <button id="startBtn">Սկսել սիմուլյացիան</button>
-            <button id="mazeBtn">Լաբիրինթոս</button>
-            <button id="clearBtn">Մաքրել</button>
+            <button id="startBtn" class="btn-primary">Սկսել</button>
+            <button id="mazeBtn" class="btn-info">Լաբիրինթոս</button>
+            <button id="clearBtn" class="btn-secondary">Մաքրել</button>
         </div>
-
-        <div class="settings">
-            <label>Արագություն: <input type="range" id="speedRange" min="1" max="100" value="50"></label>
-            <label><input type="checkbox" id="dynamicCheck"> Դինամիկ արգելքներ</label>
+        <div class="controls">
+            Արագություն: <input type="range" id="speedRange" min="1" max="100" value="85">
+            <label class="switch-label">
+                <input type="checkbox" id="dynamicCheck"> Դինամիկ ռեժիմ
+            </label>
         </div>
-
-        <div class="stats">
+        <div class="stats-board">
             <div class="stat-box">Ճանապարհի ծախս: <span id="pathLength">0</span></div>
             <div class="stat-box">Ստուգված վանդակներ: <span id="visitedCount">0</span></div>
         </div>
-
-        <div id="grid-container"></div>
-
-        <div class="legend">
-            <div class="item"><span class="box robot"></span> Ռոբոտ</div>
-            <div class="item"><span class="box goal"></span> Վերջնակետ</div>
-            <div class="item"><span class="box wall"></span> Պատ</div>
-            <div class="item"><span class="box sand"></span> Ավազ (x3)</div>
-        </div>
     </div>
+
+    <div id="grid-container"></div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-box node-start-icon"></div><span>Ռոբոտ</span></div>
+        <div class="legend-item"><div class="legend-box node-end-icon"></div><span>Վերջնակետ</span></div>
+        <div class="legend-item"><div class="legend-box node-wall-icon"></div><span>Պատ (Արգելք)</span></div>
+        <div class="legend-item"><div class="legend-box node-weight-icon"></div><span>Ավազ (Ծախս x3)</span></div>
+        <div class="legend-item"><div class="legend-box node-path-icon"></div><span>Հետագիծ</span></div>
+    </div>
+
+    <div class="tech-docs">
+        <h3>📘 Համակարգի Տեխնիկական Նկարագրություն</h3>
+        <p>Այս հարթակը հանդիսանում է շարժական ռոբոտի <strong>նավիգացիոն ենթահամակարգի</strong> սիմուլյացիա: Այն կենտրոնացած է բացառապես օպտիմալ ուղու որոնման և դինամիկ խոչընդոտներից խուսափելու ալգորիթմների վրա և չի ներառում ռոբոտի ամբողջական համակարգը (օրինակ՝ սենսորների ֆիզիկական մոդելավորումը կամ մեխանիկական կառավարումը):</p>
+        
+        <h4>🛠 Կառավարման հրահանգներ.</h4>
+        <ul>
+            <li><strong>Պատ դնելու համար:</strong> Սեղմեք մկնիկի ձախ կոճակով ցանկացած դատարկ վանդակի վրա:</li>
+            <li><strong>Ավազ դնելու համար:</strong> Պահեք <b>Shift</b> ստեղնը և սեղմեք վանդակի վրա:</li>
+            <li><strong>Դինամիկ ռեժիմ:</strong> Միացնելու դեպքում պատերը կսկսեն քաոսային շարժվել՝ ստիպելով ռոբոտին իրական ժամանակում վերանայել իր ուղին:</li>
+        </ul>
+
+        <h4>🔬 Ալգորիթմական հիմունքներ.</h4>
+        <p>Սիմուլյացիան ցուցադրում է <em>ստատիկ</em> և <em>դինամիկ ուղեգծման</em> հայեցակարգերը: <strong>Դեյքստրայի</strong> ալգորիթմը ապահովում է ճշգրիտ հաշվարկ կշռված գրաֆում, իսկ <strong>A*</strong>-ը օպտիմալացնում է որոնումը էվրիստիկ մեթոդներով: Դինամիկ ռեժիմում կիրառվում է ինկրեմենտալ վերապլանավորման սկզբունքը:</p>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
