@@ -25,11 +25,11 @@ function createGrid() {
     }
 }
 
-// --- ՊԱՏԵՐԻ ԱԿՏԻՎ ՇԱՐԺՈՒՄ ---
+// --- ՊԱՏԵՐԻ ՇԱՐԺՈՒՄ ---
 function moveObstacles() {
     const walls = Array.from(document.querySelectorAll('.node-wall'));
     walls.forEach(wall => {
-        if (Math.random() > 0.3) return; // 30% հավանականություն ամեն մի պատի համար
+        if (Math.random() > 0.4) return; // Շարժվելու հավանականություն
         const [_, r, c] = wall.id.split('-').map(Number);
         const dirs = [{r:1,c:0}, {r:-1,c:0}, {r:0,c:1}, {r:0,c:-1}];
         const d = dirs[Math.floor(Math.random() * dirs.length)];
@@ -47,54 +47,46 @@ function moveObstacles() {
     });
 }
 
-// --- ԳԼԽԱՎՈՐ ՄԻՍԻԱ (D* LITE LOGIC) ---
+// --- ԳԼԽԱՎՈՐ ՇԱՐԺԻՉ ---
 async function startSim() {
     if (!startNode || !endNode || isMoving) return;
     isMoving = true;
 
-    // Միացնել պատերի շարժիչը
+    // Միացնել պատերի շարժը
     if (obstacleTimer) clearInterval(obstacleTimer);
-    obstacleTimer = setInterval(moveObstacles, 500);
+    obstacleTimer = setInterval(moveObstacles, 600);
 
-    // Ռոբոտը շարժվում է քայլ առ քայլ
     while (startNode.r !== endNode.r || startNode.c !== endNode.c) {
-        const path = findPath(); // Ամեն քայլի համար նոր հաշվարկ (Re-planning)
-        
+        const path = findPath(); 
         if (!path || path.length === 0) {
-            console.log("Ճանապարհը փակ է, սպասում ենք...");
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise(r => setTimeout(r, 200));
             continue; 
         }
 
         const nextId = path[0];
         const nextNode = document.getElementById(nextId);
 
-        // Եթե մեր հաջորդ քայլի վրա հանկարծ պատ հայտնվեց
         if (nextNode.classList.contains('node-wall')) {
             await new Promise(r => setTimeout(r, 100));
             continue; 
         }
 
-        // --- ՖԻԶԻԿԱԿԱՆ ՏԵՂԱՓՈԽՈՒՄ ---
+        // ՌՈԲՈՏԻ ՇԱՐԺՈՒՄ ՎԱՆԴԱԿ ԱՌ ՎԱՆԴԱԿ
         document.querySelector('.node-start').classList.remove('node-start');
         let [_, nr, nc] = nextId.split('-').map(Number);
         startNode = {r: nr, c: nc};
         nextNode.classList.add('node-start');
         nextNode.classList.add('node-path');
 
-        // Թարմացնել ծախսը
         pathLengthElement.innerText = document.querySelectorAll('.node-path').length;
-
-        // Շարժման արագությունը (սլայդերից)
         await new Promise(r => setTimeout(r, 250 - speedRange.value * 2));
     }
 
     clearInterval(obstacleTimer);
     isMoving = false;
-    alert("Հասանք նպատակակետին!");
+    alert("Հասանք!");
 }
 
-// Ալգորիթմի հաշվարկ (Dijkstra կամ A*)
 function findPath() {
     let openList = [startNode];
     let prev = {};
